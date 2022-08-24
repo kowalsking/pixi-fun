@@ -25,7 +25,7 @@ class Player {
 
   draw() {
     c.beginPath()
-    c.fillStyle = '#f00'
+    c.fillStyle = '#0a0'
     c.arc(this.x, this.y, 5, 0, Math.PI * 2)
     c.fill()
   }
@@ -63,7 +63,33 @@ class Player {
   }
 
   shoot({x, y}) {
-    
+    const angle = -Math.atan2(y - this.y, x - this.x);
+
+    const bullet = {
+      x: this.x + 5 * Math.cos(angle),
+      y: this.y - 5 * Math.sin(angle),
+      size: 2,
+      xv: 5 * Math.cos(angle),
+      yv: -5 * Math.sin(angle)
+    }
+
+    this.bullets.push(bullet)
+  }
+
+  moveBullet () {
+    this.bullets.forEach((bullet) => {
+      bullet.x += bullet.xv 
+      bullet.y += bullet.yv 
+    }) 
+  }
+
+  drawBullets() {
+    this.bullets.forEach((bullet) => {
+      c.fillStyle = "red" 
+      c.beginPath() 
+      c.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2, false) 
+      c.fill() 
+    }) 
   }
 }
 
@@ -85,6 +111,8 @@ class Controller {
     this.player.vx *= this.player.friction
     this.player.x += this.player.vx
     this.player.draw()
+    this.player.drawBullets()
+    this.player.moveBullet()
 
     window.requestAnimationFrame(this.update.bind(this))
   }
@@ -107,6 +135,7 @@ class View {
     c.fillStyle = '#ccc'
     c.fillRect(0, 0, width, height)
   }
+
 }
 
 const player = new Player(100, 200, 50, 50)
