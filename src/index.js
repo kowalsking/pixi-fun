@@ -8,26 +8,40 @@ canvas.width = width
 canvas.height = height
 
 class Player {
-  constructor(x, y, width, height) {
+  constructor(x, y, size) {
     this.x = x
     this.y = y
     this.vx = 0
     this.vy = 0
     this.maxSpeed = 2
     this.friction = 0.98
-    this.width = width
-    this.height = height
+    this.size = size
     this.acceleration = 1
     this.bullets = []
-
-    this.draw()
+    this.blocks = []
   }
 
   draw() {
     c.beginPath()
     c.fillStyle = '#0a0'
-    c.arc(this.x, this.y, 5, 0, Math.PI * 2)
+    c.arc(this.x, this.y, this.size, 0, Math.PI * 2)
     c.fill()
+  }
+
+  update() {
+    this.updatePosition()
+    this.draw()
+    this.drawBullets()
+    this.moveBullet()
+    this.drawBlocks()
+  }
+
+  updatePosition() {
+    this.vy *= this.friction
+    this.y += this.vy
+
+    this.vx *= this.friction
+    this.x += this.vx
   }
 
   handleEvents() {
@@ -56,21 +70,34 @@ class Player {
       }
     })
 
-    canvas.addEventListener('click', (e) => {
-      const { x, y } = e
-      this.shoot({x, y})
-    })
+    canvas.addEventListener('click', this.shoot.bind(this))
+    canvas.addEventListener('contextmenu', this.block.bind(this))
+  }
+
+  block(e) {
+    e.preventDefault()
+    const { x, y } = e
+    const angle = -Math.atan2(y - this.y, x - this.x);
+
+    const block = {
+      x: this.x + 20 * Math.cos(angle),
+      y: this.y - 20 * Math.sin(angle),
+      size: 10
+    }
+
+    this.blocks.push(block)
   }
 
   shoot({x, y}) {
     const angle = -Math.atan2(y - this.y, x - this.x);
+    const speed = 5
 
     const bullet = {
-      x: this.x + 5 * Math.cos(angle),
-      y: this.y - 5 * Math.sin(angle),
+      x: this.x + this.size * Math.cos(angle),
+      y: this.y - this.size * Math.sin(angle),
       size: 2,
-      xv: 5 * Math.cos(angle),
-      yv: -5 * Math.sin(angle)
+      xv: speed * Math.cos(angle),
+      yv: -speed * Math.sin(angle)
     }
 
     this.bullets.push(bullet)
@@ -91,34 +118,29 @@ class Player {
       c.fill() 
     }) 
   }
+
+  drawBlocks() {
+    this.blocks.forEach((block) => {
+      c.fillStyle = "blue" 
+      c.fillRect(block.x, block.y, block.size, block.size)
+    }) 
+  }
 }
 
 class Controller {
-  constructor(player, view) {
-    this.player = player
-    this.view = view
+  constructor() {
+    this.player = new Player(100, 200, 5)
+    this.view = new View()
 
     this.player.handleEvents()
     window.requestAnimationFrame(() => this.update())
   }
 
-  update(frame) {
+  update() {
     this.view.clearCanvas()
-    
-    this.player.vy *= this.player.friction
-    this.player.y += this.player.vy
-
-    this.player.vx *= this.player.friction
-    this.player.x += this.player.vx
-    this.player.draw()
-    this.player.drawBullets()
-    this.player.moveBullet()
+    this.player.update()
 
     window.requestAnimationFrame(this.update.bind(this))
-  }
-
-  checkCollision(one, two) {
-
   }
 
   distBetweenPoints (x1, y1, x2, y2) {
@@ -138,6 +160,4 @@ class View {
 
 }
 
-const player = new Player(100, 200, 50, 50)
-const view = new View()
-const controller = new Controller(player, view)
+const controller = new Controller()
