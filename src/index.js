@@ -56,7 +56,7 @@ class Controller {
           break;
         }
         case 'd': {
-          if (p.vx > -p.maxSpeed) p.vx++
+          if (p.vx < p.maxSpeed) p.vx++
 
           // this.player.x += 15
           break;
