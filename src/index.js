@@ -7,14 +7,14 @@ const height = window.innerHeight
 canvas.width = width
 canvas.height = height
 
-c.fillStyle = '#ccc'
-c.fillRect(0, 0, window.innerWidth, window.innerHeight)
-
-
 class Player {
   constructor(x, y, width, height) {
     this.x = x
     this.y = y
+    this.vx = 0
+    this.vy = 0
+    this.maxSpeed = 2
+    this.friction = 0.98
     this.width = width
     this.height = height
 
@@ -22,8 +22,10 @@ class Player {
   }
 
   draw() {
+    c.beginPath()
     c.fillStyle = '#0ff'
-    c.fillRect(this.x, this.y, this.width, this.height)
+    c.arc(this.x, this.y, this.width, 0, Math.PI * 2)
+    c.fill()
   }
 }
 
@@ -37,22 +39,33 @@ class Controller {
   }
 
   handleEvents() {
+    const p = this.player
+
     window.addEventListener('keydown', e => {
       switch (e.key) {
         case 'w': {
-          this.player.y -= 15
+          if (p.vy > -p.maxSpeed) p.vy--
+
+          // this.player.y -= 15
           break;
         }
         case 'a': {
-          this.player.x -= 15
+          if (p.vx > -p.maxSpeed) p.vx--
+
+          // this.player.x -= 15
           break;
         }
         case 'd': {
-          this.player.x += 15
+          if (p.vx > -p.maxSpeed) p.vx++
+
+          // this.player.x += 15
           break;
         }
         case 's': {
-          this.player.y += 15
+          if (p.vy < p.maxSpeed) p.vy++
+          
+
+          // this.player.y += 15
           break;
         }
       }
@@ -62,6 +75,12 @@ class Controller {
   update(frame) {
     this.view.clearCanvas()
     this.player.draw()
+
+    this.player.vy *= this.player.friction
+    this.player.y += this.player.vy
+
+    this.player.vx *= this.player.friction
+    this.player.x += this.player.vx
     window.requestAnimationFrame(this.update.bind(this))
   }
 }
